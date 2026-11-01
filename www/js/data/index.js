@@ -3,12 +3,13 @@ import { SPELLS } from './spells.js';
 import m1 from './monsters1.js';
 import m2 from './monsters2.js';
 import m3 from './monsters3.js';
+import m4 from './monsters4.js';
 import { WEAPONS, ARMOR, GEAR, POTIONS, MAGIC_ITEMS } from './items.js';
 import { getState } from '../store.js';
 import { crValue } from '../rules.js';
 import { bookAllowed, srcOf } from './books.js';
 
-export const MONSTERS = [...m1, ...m2, ...m3].sort((a, b) => crValue(a.cr) - crValue(b.cr) || a.name.localeCompare(b.name, 'ru'));
+export const MONSTERS = [...m1, ...m2, ...m3, ...m4].sort((a, b) => crValue(a.cr) - crValue(b.cr) || a.name.localeCompare(b.name, 'ru'));
 export { SPELLS };
 
 export const CATEGORIES = [

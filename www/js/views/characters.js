@@ -9,6 +9,7 @@ import { EDITIONS, CLASS_NAMES, CLASSES, totalLevel } from '../rules.js';
 import { saveTextFile, pickFile, readText } from '../native.js';
 import { classLine } from './sheet.js';
 import { printSheet } from '../print.js';
+import { checkForUpdate, APP_VERSION } from '../update.js';
 
 export function openCharacters() { openModal(close => html`<${CharList} close=${close} />`, { title: 'Персонажи', full: true }); }
 
@@ -81,6 +82,7 @@ export function openMenu() {
     <button class="menu-item" onClick=${importFile}><${Icon} n="upload" /> Восстановить из копии</button>
     <button class="menu-item" onClick=${() => { close(); openBooks(); }}><${Icon} n="book-marked" /> Мои книги (какие источники использовать)</button>
     <button class="menu-item" onClick=${() => { close(); openDM(); }}><${Icon} n="crown" /> Инструменты мастера</button>
+    <button class="menu-item" onClick=${() => { close(); checkForUpdate({ manual: true }); }}><${Icon} n="download" /> Проверить обновление</button>
     <button class="menu-item" onClick=${() => { close(); openAbout(); }}><${Icon} n="info" /> О приложении</button>
     <p class="hint">Данные хранятся только на этом устройстве. Делайте резервные копии перед переустановкой приложения.</p>
   </div>`, { title: 'Меню' });
@@ -102,7 +104,7 @@ function BooksSettings() {
 function openAbout() {
   const st = getState();
   openModal(() => html`<div class="prose">
-    <p><b>Свиток героя</b> — офлайн-помощник игрока D&D: лист персонажа для 5e, 2024, 4e, 3.5 и AD&D 2e, заклинания, бестиарий, снаряжение, кубики и трекер боя.</p>
+    <p><b>Свиток героя</b> ${APP_VERSION} — офлайн-помощник игрока D&D: лист персонажа для 5e, 2024, 4e, 3.5 и AD&D 2e, заклинания, бестиарий, снаряжение, кубики и трекер боя.</p>
     <p>Персонажей: ${st.characters.length}. Своих записей в справочнике: ${st.custom.spells.length + st.custom.monsters.length + st.custom.items.length}.</p>
     <p class="small">Справочные материалы основаны на System Reference Document 5.1 и 5.2 © Wizards of the Coast LLC, распространяемых по лицензии Creative Commons Attribution 4.0 (creativecommons.org/licenses/by/4.0). Тексты пересказаны и переведены на русский. Приложение не связано с Wizards of the Coast и не одобрено ею. Dungeons & Dragons — товарный знак Wizards of the Coast.</p>
     <p class="small">Шрифты Cormorant Garamond и PT Sans — SIL Open Font License. Иконки Lucide — ISC. Preact и htm — MIT.</p>

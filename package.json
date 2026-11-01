@@ -1,6 +1,6 @@
 {
   "name": "svitok-geroya",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Свиток героя — офлайн-компаньон игрока и мастера D&D на русском",
   "private": true,
   "scripts": {

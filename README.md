@@ -27,6 +27,20 @@ npm run build:apk     # debug APK в android/app/build/outputs/apk/debug/
 
 Требования: Node 18+, JDK 17, Android SDK.
 
+## Обновления
+
+Приложение при запуске (и по кнопке «Проверить обновление» в меню) сверяет свою версию
+с `version.json` в ветке `main` этого репозитория. Если версия в репозитории новее —
+показывается окно со ссылкой на свежий APK со страницы
+[Releases](https://github.com/duboshin52/svitok-geroya/releases).
+
+Порядок выпуска новой версии:
+
+1. Поднять версию в трёх местах: `www/js/update.js` (`APP_VERSION`), `package.json`,
+   `android/app/build.gradle` (`versionCode` +1, `versionName`).
+2. Обновить `version.json` в корне (`version`, `notes`).
+3. Собрать APK, выложить его в GitHub Release с тегом `vX.Y.Z`.
+
 ## Запуск в браузере для разработки
 
 ```bash

@@ -12,6 +12,7 @@ import { LibraryView } from './views/library.js';
 import { DicePanel } from './views/dice-view.js';
 import { openCharacters, openMenu, openNewChar } from './views/characters.js';
 import { onBackButton, setupStatusBar } from './native.js';
+import { checkForUpdate } from './update.js';
 
 const NAV = [
   ['sheet', 'Лист', 'scroll-text'],
@@ -68,6 +69,8 @@ function Welcome({ hasChars }) {
 
 render(html`<${App} />`, document.getElementById('app'));
 setupStatusBar();
+// Тихая проверка обновлений через пару секунд после запуска (не мешает офлайн-режиму)
+setTimeout(() => { checkForUpdate().catch(() => {}); }, 2500);
 onBackButton(() => {
   if (hasModal()) { closeModal(); return true; }
   return false;
