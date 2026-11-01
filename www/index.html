@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#14110f" />
+  <meta name="color-scheme" content="dark" />
+  <title>Свиток героя</title>
+  <link rel="icon" href="img/icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script type="importmap">
+    { "imports": { "preact": "./vendor/preact/src/index.js", "preact/hooks": "./vendor/preact/hooks/index.js" } }
+  </script>
+</head>
+<body>
+  <div id="app"><div id="boot" style="display:grid;place-items:center;height:100%;color:#a8998a;font-family:serif;font-size:22px">Разворачиваем свиток…</div></div>
+  <noscript>Для работы приложения нужен JavaScript.</noscript>
+  <script src="js/capacitor-plugins.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

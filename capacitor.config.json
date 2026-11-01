@@ -1,0 +1,9 @@
+{
+  "appId": "ru.svitokgeroya.app",
+  "appName": "Свиток героя",
+  "webDir": "www",
+  "backgroundColor": "#14110f",
+  "android": {
+    "allowMixedContent": false
+  }
+}
