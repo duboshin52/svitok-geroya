@@ -4,6 +4,7 @@
   "description": "Свиток героя — офлайн-компаньон игрока и мастера D&D на русском",
   "private": true,
   "scripts": {
+    "dev": "node scripts/dev-server.mjs",
     "sync": "cap sync android",
     "build:apk": "cap sync android && cd android && gradlew assembleDebug",
     "build:release": "cap sync android && cd android && gradlew assembleRelease"
