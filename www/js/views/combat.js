@@ -185,6 +185,7 @@ function AttacksCard({ c }) {
     ${c.attacks.length ? c.attacks.map(a => { const { atk } = K.attackBonus(c, a); const dmg = K.damageFormula(c, a); return html`<div class="listrow">
       <button class="grow" style="background:none;border:0;text-align:left;padding:0" onClick=${() => openAttack(a)}>
         <div class="t">${a.name}</div><div class="tiny faint">${[a.range, dmg && `${dmg.replace(/d/g, 'к')} ${a.dtype || ''}`, a.notes].filter(Boolean).join(' · ')}</div></button>
+      <button class="btn sm gold" title="Бросить атаку и урон разом (крит ×2 при 20)" onClick=${() => rollFullAttack(c, a)}><${Icon} n="swords" cls="xs" /></button>
       <button class="bonus" onClick=${() => K.rollCheck(atk, `Атака: ${a.name}`)}>${fmt(atk)}</button>
       ${dmg && html`<button class="btn sm" onClick=${() => roll(dmg, { label: `Урон: ${a.name}` })}>урон</button>`}
       ${dmg && html`<button class="btn sm ghost" title="Критический урон" onClick=${() => roll(critFormula(dmg), { label: `Крит: ${a.name}` })}>крит</button>`}
@@ -194,6 +195,17 @@ function AttacksCard({ c }) {
   </div>`;
 }
 const critFormula = (f) => f.replace(/(\d*)d(\d+)/g, (m, cnt, s) => `${(Number(cnt) || 1) * 2}d${s}`);
+
+// Атака и урон одним нажатием: при натуральной 20 урон сразу критический, при 1 — промах
+export function rollFullAttack(c, a) {
+  const { atk } = K.attackBonus(c, a);
+  const dmg = K.damageFormula(c, a);
+  const r = K.rollCheck(atk, `Атака: ${a.name}`);
+  if (!r) return;
+  if (r.nat === 20) { if (dmg) roll(critFormula(dmg), { label: `Критический урон: ${a.name}` }); }
+  else if (r.nat === 1) toast(`${a.name}: критический промах!`, 'bad');
+  else if (dmg) roll(dmg, { label: `Урон: ${a.name}` });
+}
 
 function openAttack(a) { openModal(close => html`<${AttackEditor} a=${a} close=${close} />`, { title: a ? 'Атака' : 'Новая атака' }); }
 function AttackEditor({ a, close }) {

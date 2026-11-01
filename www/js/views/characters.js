@@ -8,6 +8,7 @@ import { getState, setState, newCharacter, normalizeChar, uid, toast, exportAll,
 import { EDITIONS, CLASS_NAMES, CLASSES, totalLevel } from '../rules.js';
 import { saveTextFile, pickFile, readText } from '../native.js';
 import { classLine } from './sheet.js';
+import { printSheet } from '../print.js';
 
 export function openCharacters() { openModal(close => html`<${CharList} close=${close} />`, { title: 'Персонажи', full: true }); }
 
@@ -39,6 +40,7 @@ function charMenu(c) {
   openModal(close => html`<div>
     <button class="menu-item" onClick=${() => { const copy = normalizeChar(JSON.parse(JSON.stringify(c))); copy.id = uid(); copy.name = c.name + ' (копия)'; setState(s => { s.characters.push(copy); return s; }); toast('Копия создана', 'good'); close(); }}><${Icon} n="copy" /> Дублировать</button>
     <button class="menu-item" onClick=${async () => { await saveTextFile(`${safe(c.name)}.dnd.json`, JSON.stringify({ app: 'dnd-companion-character', version: 1, character: c }, null, 1)); close(); }}><${Icon} n="download" /> Экспорт персонажа</button>
+    <button class="menu-item" onClick=${async () => { close(); await printSheet(c); }}><${Icon} n="printer" /> Печать / PDF листа</button>
     <button class="menu-item" style="color:#ef8f86" onClick=${() => deleteCharacter(c, close)}><${Icon} n="trash" /> Удалить</button>
   </div>`, { title: c.name });
 }

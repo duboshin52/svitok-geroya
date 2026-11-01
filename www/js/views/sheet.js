@@ -316,27 +316,39 @@ function PersonaTab({ c }) {
 // ================= ЖУРНАЛ =================
 function JournalTab({ c }) {
   const [f, setF] = useState('all');
-  const list = c.journal.filter(j => f === 'all' || j.type === f).sort((a, b) => (a.done - b.done) || b.date - a.date);
+  const [sess, setSess] = useState(0); // 0 — все сессии
+  const sessions = [...new Set(c.journal.map(j => Number(j.session) || 0).filter(Boolean))].sort((a, b) => b - a);
+  const list = c.journal.filter(j => (f === 'all' || j.type === f) && (!sess || Number(j.session) === sess)).sort((a, b) => (a.done - b.done) || b.date - a.date);
+  const newSession = () => {
+    const next = (sessions[0] || 0) + 1;
+    updChar(ch => ch.journal.push({ id: uid(), date: Date.now(), type: 'note', title: `Сессия ${next} — ${new Date().toLocaleDateString('ru-RU')}`, text: '', session: next }));
+    setF('all'); setSess(next); toast(`Сессия ${next} начата — записи помечаются её номером`, 'good');
+  };
   return html`<div>
     <div class="row between mb"><${Toggle} value=${f} onChange=${setF} options=${[['all', 'Всё'], ['note', 'Заметки'], ['quest', 'Задания'], ['npc', 'НИП']]} />
-      <button class="btn sm gold" onClick=${() => openEntry()}><${Icon} n="plus" cls="s" /></button></div>
+      <button class="btn sm gold" onClick=${() => openEntry(null, sess)}><${Icon} n="plus" cls="s" /></button></div>
+    <div class="row wrapr mb">
+      ${sessions.length > 0 && html`<${Select} value=${String(sess)} onChange=${v => setSess(Number(v))} options=${[['0', 'Все сессии'], ...sessions.map(n => [String(n), 'Сессия ' + n])]} style="max-width:170px" />`}
+      <button class="btn sm" onClick=${newSession}><${Icon} n="flag" cls="s" /> Новая сессия</button></div>
     ${list.length ? list.map(j => html`<div class="card tight">
       <div class="row">${j.type === 'quest' && html`<button class=${'dot green' + (j.done ? ' on' : '')} onClick=${() => updChar(ch => { const x = ch.journal.find(y => y.id === j.id); x.done = !x.done; })} aria-label="Выполнено"></button>`}
         <button class="grow" style="background:none;border:0;text-align:left;padding:2px 0" onClick=${() => openEntry(j)}>
           <div style=${'font-weight:700;' + (j.done ? 'text-decoration:line-through;opacity:.6' : '')}>${j.title || 'Без названия'}</div>
-          <div class="tiny faint">${{ note: 'Заметка', quest: 'Задание', npc: 'НИП' }[j.type]} · ${new Date(j.date).toLocaleDateString('ru-RU')}</div>
+          <div class="tiny faint">${{ note: 'Заметка', quest: 'Задание', npc: 'НИП' }[j.type]} · ${new Date(j.date).toLocaleDateString('ru-RU')}${j.session ? ` · сессия ${j.session}` : ''}${j.tags ? ` · ${j.tags}` : ''}</div>
           ${j.text && html`<div class="small muted" style="white-space:pre-wrap;max-height:4.2em;overflow:hidden">${j.text}</div>`}</button></div></div>`)
       : html`<${Empty} icon="notebook-pen">Записывайте события сессий, задания и важных персонажей.</${Empty}>`}
   </div>`;
 }
-function openEntry(j) { openModal(close => html`<${EntryEditor} j=${j} close=${close} />`, { title: j ? 'Запись' : 'Новая запись', full: true }); }
-function EntryEditor({ j, close }) {
-  const [d, setD] = useState(j ? { ...j } : { title: '', text: '', type: 'note', done: false });
+function openEntry(j, session) { openModal(close => html`<${EntryEditor} j=${j} session=${session || 0} close=${close} />`, { title: j ? 'Запись' : 'Новая запись', full: true }); }
+function EntryEditor({ j, session, close }) {
+  const [d, setD] = useState(j ? { ...j } : { title: '', text: '', type: 'note', done: false, session: session || 0, tags: '' });
   const s = (k) => (v) => setD(o => ({ ...o, [k]: v }));
   const save = () => { updChar(ch => { if (j) Object.assign(ch.journal.find(x => x.id === j.id), d); else ch.journal.push({ ...d, id: uid(), date: Date.now() }); }); close(); };
   return html`<div>
     <${Toggle} value=${d.type} onChange=${s('type')} options=${[['note', 'Заметка'], ['quest', 'Задание'], ['npc', 'НИП']]} />
     <${Field} label="Заголовок" cls="mt"><${TextIn} value=${d.title} onChange=${s('title')} /><//>
+    <div class="grid2 mt"><${Field} label="Номер сессии (0 — вне сессий)"><${NumIn} value=${d.session || 0} onChange=${v => s('session')(Number(v) || 0)} /><//>
+      <${Field} label="Метки (через запятую)"><${TextIn} value=${d.tags || ''} onChange=${s('tags')} placeholder="договор, подземелье, рыцарь Эдгар" /><//></div>
     <${Field} label="Текст" cls="mt"><${Area} rows=${12} value=${d.text} onChange=${s('text')} /><//>
     <div class="row mt2">${j && html`<button class="btn red" onClick=${async () => { if (await confirmBox('Удалить запись?')) { updChar(ch => { ch.journal = ch.journal.filter(x => x.id !== j.id); }); close(); } }}><${Icon} n="trash" cls="s" /></button>`}
       <button class="btn grow" onClick=${close}>Отмена</button><button class="btn gold grow" onClick=${save}>Сохранить</button></div>

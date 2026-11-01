@@ -11,6 +11,7 @@ import { SCHOOLS, SPELL_CLASSES, levelName, SIZES, CR_XP, crValue, mod, fmt, ABI
 import { roll } from '../dice.js';
 import { openDM } from './dm.js';
 import { srcOf, matchBook, booksIn, bookAllowed, bookName } from '../data/books.js';
+import { saveTextFile, pickFile, readText } from '../native.js';
 
 let libCat = null; // запоминаем раздел между переключениями вкладок
 const filters = {};
@@ -38,7 +39,8 @@ export function LibraryView() {
   return html`<div class="wrap">
     <div class="row mb"><button class="btn sm ghost" onClick=${() => go(null)}><${Icon} n="chevron-left" cls="s" /> Разделы</button>
       <div class="grow"></div>
-      ${!['conditions', 'classes', 'races', 'backgrounds', 'feats'].includes(cat) && html`<button class="btn sm" onClick=${() => openCustomEditor(cat)}><${Icon} n="plus" cls="s" /> Своя запись</button>`}</div>
+      ${!['conditions', 'classes', 'races', 'backgrounds', 'feats'].includes(cat) && html`<button class="btn sm ghost" title="Импорт записи из JSON-файла" onClick=${importEntryFile}><${Icon} n="upload" cls="s" /></button>
+        <button class="btn sm" onClick=${() => openCustomEditor(cat)}><${Icon} n="plus" cls="s" /> Своя запись</button>`}</div>
     ${cat === 'conditions' ? html`<${ConditionsList} />` : ['classes', 'races', 'backgrounds', 'feats'].includes(cat) ? html`<${OriginsList} cat=${cat} />` : html`<${LibraryList} cat=${cat} />`}
   </div>`;
 }
@@ -180,7 +182,8 @@ function Detail({ x, cat, close }) {
       ${cat === 'monsters' && html`<button class="btn gold grow" onClick=${() => { addCompanion(x); close(); }} disabled=${!c}><${Icon} n="paw-print" cls="s" /> В спутники</button>`}
       ${!['spells', 'monsters'].includes(cat) && html`<button class="btn gold grow" onClick=${() => addItemToChar(x)} disabled=${!c}><${Icon} n="backpack" cls="s" /> В сумку</button>`}
       ${cat === 'weapons' && html`<button class="btn grow" onClick=${() => addAttackFromWeapon(x)} disabled=${!c}><${Icon} n="swords" cls="s" /> Как атаку</button>`}
-      ${x.custom && html`<button class="btn" onClick=${() => { close(); openCustomEditor(cat, x); }}><${Icon} n="pencil" cls="s" /></button>
+      ${x.custom && html`<button class="btn" onClick=${() => shareEntry(cat, x)} title="Поделиться записью (JSON-файл)"><${Icon} n="share-2" cls="s" /></button>
+        <button class="btn" onClick=${() => { close(); openCustomEditor(cat, x); }}><${Icon} n="pencil" cls="s" /></button>
         <button class="btn red" onClick=${async () => { if (await confirmBox(`Удалить «${x.name}» из справочника?`)) { deleteCustom(cat, x.id); close(); } }}><${Icon} n="trash" cls="s" /></button>`}
     </div>
     ${!c && html`<p class="hint center">Создайте персонажа, чтобы добавлять записи в лист.</p>`}
@@ -295,6 +298,30 @@ function deleteCustom(cat, id) {
   const key = CAT2STORE[cat] || 'items';
   setState(s => { s.custom[key] = s.custom[key].filter(x => x.id !== id); return s; });
   toast('Запись удалена');
+}
+
+// Поделиться одной своей записью: JSON-файл, который другой пользователь импортирует кнопкой рядом с «Своя запись»
+async function shareEntry(cat, x) {
+  await saveTextFile(`${String(x.name || 'zapis').replace(/[^\p{L}\p{N}_-]+/gu, '_').slice(0, 40)}.dnd-entry.json`,
+    JSON.stringify({ app: 'dnd-companion-entry', version: 1, cat, entry: x }, null, 1));
+  toast('Файл записи создан — отправьте его другу', 'good');
+}
+export async function importEntryFile() {
+  const f = await pickFile('.json,application/json,text/plain'); if (!f) return;
+  try {
+    const d = JSON.parse(await readText(f));
+    if (d.app !== 'dnd-companion-entry' || !d.entry || !d.entry.name) throw new Error('Файл не похож на запись этого приложения');
+    const e = d.entry; const kind = e.kind || (d.cat === 'spells' ? 'spell' : d.cat === 'monsters' ? 'monster' : 'item');
+    const key = kind === 'spell' ? 'spells' : kind === 'monster' ? 'monsters' : 'items';
+    setState(s => {
+      const arr = s.custom[key];
+      if (arr.some(x => x.id === e.id)) e.id = 'c-' + uid(); // уже есть такая — сохраняем как копию
+      e.custom = true;
+      arr.unshift(e);
+      return s;
+    });
+    toast(`Запись «${e.name}» добавлена в справочник`, 'good');
+  } catch (err) { toast(err.message || 'Не удалось прочитать файл', 'bad'); }
 }
 
 export function openCustomEditor(cat, existing) {

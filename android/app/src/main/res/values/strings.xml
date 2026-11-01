@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Свиток героя</string>
+    <string name="title_activity_main">Свиток героя</string>
+    <string name="package_name">ru.svitokgeroya.app</string>
+    <string name="custom_url_scheme">ru.svitokgeroya.app</string>
+</resources>
