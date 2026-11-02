@@ -39,7 +39,25 @@ npm run build:apk     # debug APK в android/app/build/outputs/apk/debug/
 1. Поднять версию в трёх местах: `www/js/update.js` (`APP_VERSION`), `package.json`,
    `android/app/build.gradle` (`versionCode` +1, `versionName`).
 2. Обновить `version.json` в корне (`version`, `notes`).
-3. Собрать APK, выложить его в GitHub Release с тегом `vX.Y.Z`.
+3. Собрать подписанный APK (`npm run build:release`), выложить его в GitHub Release с тегом `vX.Y.Z`.
+
+## Подпись релизных сборок
+
+Release-APK подписывается ключом из `keystore/svitok.keystore`; пароли — в
+`keystore.properties` в корне репозитория. Оба файла в `.gitignore` и не коммитятся.
+
+**Бэкап критичен:** потеря keystore означает невозможность обновлять уже опубликованное
+приложение — пользователям придётся удалять и ставить заново с потерей данных. Храните
+`keystore/svitok.keystore` и `keystore.properties` в надёжном месте (менеджер паролей,
+зашифрованный диск).
+
+Для подписи на другой машине достаточно положить эти два файла на свои места и
+выполнить `npm run build:release`.
+
+Важно: подпись debug- и release-APK различается. Поверх debug-сборки release не
+встаёт — нужно сначала удалить приложение (предварительно сделав резервную копию
+внутри приложения: Меню → «Резервная копия всего»), затем установить release-APK
+и восстановиться из копии. Дальнейшие обновления release-версии будут ставиться поверх.
 
 ## Запуск в браузере для разработки
 

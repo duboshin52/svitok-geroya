@@ -1,6 +1,23 @@
 apply plugin: 'com.android.application'
 
+// Подпись релизных сборок: параметры лежат в keystore.properties (не коммитится)
+def keystorePropertiesFile = rootProject.file('../keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                keyAlias keystoreProperties['keyAlias']
+                storePassword keystoreProperties['storePassword']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     namespace "ru.svitokgeroya.app"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -20,6 +37,9 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

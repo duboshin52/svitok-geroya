@@ -6,3 +6,4 @@ android/local.properties
 *.keystore
 *.jks
 .DS_Store
+keystore.properties
